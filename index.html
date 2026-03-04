@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CryptoLab ☕ Ghost Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #3ecfcf; --teal-dark: #2aabab; --teal-bg: #4ad4d4;
+    --cloud: #e8f8f8; --yellow: #f5d547; --orange: #f58c35;
+    --green: #5dcc6a; --red: #e84040; --white: #f7fafa;
+    --ink: #1a1a2e; --panel: #ffffff;
+    --outline: 3px solid #1a1a2e;
+    --shadow: 5px 5px 0px #1a1a2e;
+    --shadow-sm: 3px 3px 0px #1a1a2e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background-color: var(--teal-bg);
+    background-image: radial-gradient(circle at 15% 25%, rgba(255,255,255,0.15) 0%, transparent 40%),
+                      radial-gradient(circle at 85% 75%, rgba(0,80,80,0.15) 0%, transparent 40%);
+    min-height: 100vh; overflow-x: hidden;
+  }
+
+  /* CLOUDS */
+  .clouds { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .cloud { position: absolute; background: white; border-radius: 50px; opacity: 0.55; animation: drift linear infinite; }
+  .cloud::before, .cloud::after { content: ''; position: absolute; background: white; border-radius: 50%; }
+  .cloud::before { width: 60%; height: 180%; top: -70%; left: 15%; }
+  .cloud::after  { width: 45%; height: 150%; top: -55%; right: 15%; }
+  @keyframes drift { from { transform: translateX(-220px); } to { transform: translateX(calc(100vw + 220px)); } }
+  .dot { position: fixed; width: 6px; height: 6px; background: white; border-radius: 50%; opacity: 0.5; animation: blink 2s ease-in-out infinite; }
+  @keyframes blink { 0%,100% { opacity:0.3; transform:scale(1); } 50% { opacity:0.8; transform:scale(1.4); } }
+
+  .wrapper { position: relative; z-index: 1; max-width: 880px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  /* COVER */
+  .cover {
+    background: var(--white); border: var(--outline); border-radius: 28px;
+    box-shadow: var(--shadow); padding: 36px 28px 32px; text-align: center;
+    margin-bottom: 32px; position: relative; overflow: hidden;
+  }
+  .cover::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 10px;
+    background: repeating-linear-gradient(90deg, var(--teal) 0 20px, var(--yellow) 20px 40px, var(--green) 40px 60px, var(--orange) 60px 80px);
+  }
+  .cover-logo { width:110px; height:110px; border-radius:50%; border:var(--outline); box-shadow:var(--shadow); margin:16px auto 20px; display:block; transition:transform 0.3s; }
+  .cover-logo:hover { transform: rotate(-5deg) scale(1.05); }
+  .cover h1 { font-family:'Fredoka One',cursive; font-size:clamp(26px,5vw,40px); color:var(--ink); line-height:1.1; margin-bottom:6px; }
+  .cover h1 span { color: var(--teal-dark); }
+  .cover-sub { font-size:15px; color:#555; font-weight:600; margin-bottom:20px; }
+  .cover-tags { display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
+  .tag { background:var(--yellow); border:2px solid var(--ink); border-radius:20px; padding:5px 14px; font-size:13px; font-weight:800; color:var(--ink); box-shadow:2px 2px 0 var(--ink); display:inline-flex; align-items:center; gap:5px; }
+  .tag.teal { background:var(--teal); } .tag.green { background:var(--green); } .tag.orange { background:var(--orange); color:white; }
+  .cover-meta { display:flex; justify-content:center; gap:14px; flex-wrap:wrap; margin-top:10px; }
+  .meta-pill { background:var(--cloud); border:2px solid var(--ink); border-radius:12px; padding:8px 16px; font-size:13px; font-weight:700; color:var(--ink); box-shadow:2px 2px 0 var(--ink); }
+  .meta-pill span { color:var(--teal-dark); }
+  .open-sign { display:inline-flex; align-items:center; background:var(--green); border:2px solid var(--ink); border-radius:8px; padding:4px 12px; font-family:'Fredoka One',cursive; font-size:13px; color:var(--ink); box-shadow:2px 2px 0 var(--ink); margin-left:10px; vertical-align:middle; animation:wiggle 2s ease-in-out infinite; }
+  @keyframes wiggle { 0%,100%{transform:rotate(-2deg);} 50%{transform:rotate(2deg);} }
+
+  .ghost-divider { text-align:center; margin:4px 0 20px; font-size:26px; letter-spacing:8px; opacity:0.6; animation:floatY 3s ease-in-out infinite; }
+  @keyframes floatY { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
+
+  .section-label { background:var(--ink); color:var(--yellow); font-family:'Fredoka One',cursive; font-size:14px; letter-spacing:2px; padding:6px 18px; border-radius:20px; margin:10px auto 24px; display:flex; width:fit-content; gap:8px; align-items:center; }
+
+  /* CARD */
+  .card {
+    background:var(--panel); border:var(--outline); border-radius:24px; box-shadow:var(--shadow);
+    padding:28px 26px; margin-bottom:28px; position:relative; transition:transform 0.2s;
+    animation:pop-in 0.5s cubic-bezier(.34,1.56,.64,1) backwards;
+  }
+  .card:hover { transform:translateY(-3px); }
+  .card:nth-child(1){animation-delay:0.05s;} .card:nth-child(2){animation-delay:0.15s;} .card:nth-child(3){animation-delay:0.25s;} .card:nth-child(4){animation-delay:0.35s;}
+  @keyframes pop-in { from{opacity:0;transform:scale(0.9) translateY(20px);} to{opacity:1;transform:scale(1) translateY(0);} }
+  .card::before { content:''; position:absolute; top:-1px; left:20px; right:20px; height:6px; border-radius:0 0 6px 6px; }
+  .card.c1::before{background:var(--teal);} .card.c2::before{background:var(--yellow);} .card.c3::before{background:var(--green);} .card.c4::before{background:var(--orange);}
+  .card-num { position:absolute; top:18px; right:22px; font-family:'Fredoka One',cursive; font-size:48px; color:rgba(0,0,0,0.05); line-height:1; pointer-events:none; user-select:none; }
+  .card-head { display:flex; align-items:center; gap:14px; margin-bottom:18px; }
+  .card-emoji { width:52px; height:52px; border:2px solid var(--ink); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:26px; box-shadow:var(--shadow-sm); flex-shrink:0; }
+  .c1 .card-emoji{background:#d0f5f5;} .c2 .card-emoji{background:#fff9c4;} .c3 .card-emoji{background:#d4f5d8;} .c4 .card-emoji{background:#ffe8d0;}
+  .card h2 { font-family:'Fredoka One',cursive; font-size:clamp(18px,3vw,24px); color:var(--ink); line-height:1.1; }
+  .card-badge { display:inline-block; font-size:10px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; padding:3px 10px; border-radius:20px; border:2px solid var(--ink); margin-top:4px; box-shadow:1px 1px 0 var(--ink); }
+  .c1 .card-badge{background:var(--teal);} .c2 .card-badge{background:var(--yellow);} .c3 .card-badge{background:var(--green);} .c4 .card-badge{background:var(--orange);color:white;}
+
+  /* EXPLAIN */
+  .explain { background:var(--cloud); border:2px solid var(--ink); border-radius:16px; padding:20px 18px 16px; margin-bottom:20px; font-size:14px; font-weight:600; color:#333; line-height:1.7; position:relative; box-shadow:3px 3px 0 rgba(0,0,0,0.08); }
+  .explain-icon { position:absolute; top:-14px; left:16px; font-size:18px; background:white; border:2px solid var(--ink); border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; }
+  .explain strong { color:var(--teal-dark); }
+  .formula-box { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .formula { display:inline-block; background:var(--ink); color:var(--yellow); font-family:'Fredoka One',cursive; font-size:13px; padding:6px 14px; border-radius:20px; }
+
+  .divider { border:none; height:2px; background:repeating-linear-gradient(90deg,var(--ink) 0 8px,transparent 8px 14px); margin:20px 0; opacity:0.15; }
+
+  /* INPUTS */
+  .input-label { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:#666; display:block; margin-bottom:6px; margin-top:12px; }
+  input[type="text"], input[type="number"] { width:100%; padding:12px 16px; background:var(--white); border:2px solid var(--ink); border-radius:12px; font-family:'Nunito',sans-serif; font-size:15px; font-weight:700; color:var(--ink); box-shadow:3px 3px 0 rgba(0,0,0,0.1); outline:none; transition:box-shadow 0.2s,transform 0.2s; }
+  input:focus { box-shadow:3px 3px 0 var(--teal-dark); transform:translateY(-1px); }
+  input::placeholder { color:#aaa; font-weight:600; }
+  .inputs-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+  /* BUTTONS */
+  .btn-row { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+  button { padding:12px 22px; border:2px solid var(--ink); border-radius:12px; cursor:pointer; font-family:'Fredoka One',cursive; font-size:15px; letter-spacing:0.5px; transition:all 0.15s; box-shadow:3px 3px 0 var(--ink); display:inline-flex; align-items:center; gap:6px; }
+  button:hover { transform:translate(-1px,-1px); box-shadow:5px 5px 0 var(--ink); }
+  button:active { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink); }
+  .btn-enc{background:var(--teal);color:var(--ink);} .btn-dec{background:var(--orange);color:white;} .btn-gen{background:var(--green);color:var(--ink);}
+  .btn-copy{background:var(--yellow);color:var(--ink);font-size:13px;padding:8px 14px;}
+
+  /* RESULT */
+  .result-label { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1.5px; color:#888; margin-top:18px; margin-bottom:6px; display:block; }
+  .result { min-height:50px; background:var(--ink); color:var(--yellow); border:2px solid var(--ink); border-radius:12px; padding:12px 16px; font-family:'Fredoka One',cursive; font-size:18px; letter-spacing:1px; word-break:break-all; box-shadow:3px 3px 0 rgba(0,0,0,0.3); transition:all 0.3s; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  .result.empty { color:#555; font-size:14px; font-family:'Nunito',sans-serif; font-weight:600; }
+  .result-text { flex:1; }
+
+  /* ===== ANIMATION STAGE ===== */
+  .anim-stage {
+    background: #0d1b2a;
+    border: 2px solid var(--ink);
+    border-radius: 16px;
+    padding: 18px 16px;
+    margin-top: 16px;
+    display: none;
+    box-shadow: 3px 3px 0 var(--ink);
+    overflow: hidden;
+  }
+  .anim-stage.visible { display: block; }
+  .anim-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 13px;
+    color: var(--teal);
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Letter-by-letter animation row */
+  .letter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+    min-height: 48px;
+  }
+  .letter-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    opacity: 0;
+    transform: translateY(16px);
+    animation: letter-pop 0.3s cubic-bezier(.34,1.56,.64,1) forwards;
+  }
+  @keyframes letter-pop {
+    to { opacity:1; transform:translateY(0); }
+  }
+  .l-orig {
+    background: #1e3a5f;
+    color: #7dd3fc;
+    font-family: 'Fredoka One', cursive;
+    font-size: 16px;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    border: 2px solid #2563eb;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .l-arrow { color: #64748b; font-size: 10px; }
+  .l-result {
+    background: #1a3a1a;
+    color: var(--yellow);
+    font-family: 'Fredoka One', cursive;
+    font-size: 16px;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    border: 2px solid #16a34a;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .l-skip { color: #64748b; font-size: 11px; font-family: 'Nunito', sans-serif; font-weight: 700; }
+
+  /* Steps table */
+  .steps-section { margin-top: 14px; }
+  .steps-title { font-family:'Fredoka One',cursive; font-size:13px; color:var(--orange); margin-bottom:8px; }
+  .steps-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .steps-table th { background:#1e293b; color:var(--teal); font-family:'Fredoka One',cursive; padding:7px 10px; text-align:left; font-size:11px; letter-spacing:1px; }
+  .steps-table td { background:#0f1f30; color:#cbd5e1; padding:6px 10px; border-bottom:1px solid #1e293b; font-family:'Nunito',sans-serif; font-weight:700; font-size:12px; }
+  .steps-table tr:hover td { background:#162030; }
+  .steps-table .td-letter { color:#7dd3fc; font-family:'Fredoka One',cursive; font-size:14px; }
+  .steps-table .td-result { color:var(--yellow); font-family:'Fredoka One',cursive; font-size:14px; }
+  .steps-table .td-num { color:#94a3b8; }
+
+  /* RSA keys */
+  #rsaKeys { background:#f0fafa; border:2px solid var(--teal-dark); border-radius:12px; padding:12px 16px; font-family:'Fredoka One',cursive; font-size:14px; color:var(--ink); margin:14px 0; min-height:46px; line-height:1.6; box-shadow:2px 2px 0 var(--teal-dark); }
+
+  .footer { text-align:center; padding:30px 20px; margin-top:10px; }
+  .footer-inner { display:inline-flex; align-items:center; gap:12px; background:var(--ink); color:white; font-family:'Fredoka One',cursive; font-size:14px; letter-spacing:1px; padding:12px 26px; border-radius:40px; border:2px solid var(--ink); box-shadow:4px 4px 0 rgba(0,0,0,0.3); }
+
+  /* Copy toast */
+  .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:var(--yellow); font-family:'Fredoka One',cursive; font-size:15px; padding:12px 24px; border-radius:30px; border:2px solid var(--yellow); box-shadow:var(--shadow); opacity:0; transition:all 0.3s; z-index:999; pointer-events:none; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:580px) { .card{padding:22px 16px;} .inputs-row{grid-template-columns:1fr;} .cover-meta{gap:8px;} }
+</style>
+</head>
+<body>
+
+<div class="clouds">
+  <div class="cloud" style="width:140px;height:50px;top:8%;animation-duration:35s;animation-delay:-5s;"></div>
+  <div class="cloud" style="width:200px;height:70px;top:18%;animation-duration:50s;animation-delay:-20s;"></div>
+  <div class="cloud" style="width:110px;height:40px;top:5%;animation-duration:28s;animation-delay:-10s;"></div>
+  <div class="cloud" style="width:170px;height:60px;top:30%;animation-duration:45s;animation-delay:-35s;"></div>
+</div>
+<div class="dot" style="top:12%;left:8%;animation-delay:0s;"></div>
+<div class="dot" style="top:25%;left:92%;animation-delay:0.5s;"></div>
+<div class="dot" style="top:60%;left:5%;animation-delay:1s;"></div>
+<div class="dot" style="top:75%;left:95%;animation-delay:1.5s;"></div>
+
+<div class="toast" id="toast">📋 Copied!</div>
+
+<div class="wrapper">
+
+  <!-- COVER -->
+  <div class="cover">
+    <div class="cover-tags">
+      <span class="tag teal">👻 Ghost Edition</span>
+      <span class="tag">🔐 CryptoLab</span>
+      <span class="tag green">RUPP 2026</span>
+    </div>
+    <img src="./image.png" alt="RUPP Logo" class="cover-logo">
+    <h1>Encryption &amp;<br><span>Decryption</span> Lab <span class="open-sign">OPEN</span></h1>
+    <p class="cover-sub">Interactive Cryptography Demo · Royal University of Phnom Penh</p>
+    <div class="cover-meta">
+      <div class="meta-pill">📚 Submitted to: <span>Mr. LIM Seyha</span></div>
+      <div class="meta-pill">✏️ By: <span>Sami bunleap & Ven Dara and AI</span></div>
+      <div class="meta-pill">📅 <span>February 27, 2026</span></div>
+    </div>
+  </div>  
+
+  <div class="ghost-divider">👻 ☕ 🔑 👻 ☕ 🔑 👻</div>
+  <div class="section-label">✦ CIPHER MODULES — PICK YOUR WEAPON ✦</div>
+
+  <!-- ===== CAESAR ===== -->
+  <div class="card c1">
+    <div class="card-num">01</div>
+    <div class="card-head">
+      <div class="card-emoji">🏛️</div>
+      <div class="card-title-wrap">
+        <h2>Caesar Cipher</h2>
+        <span class="card-badge">Classical Shift · k=3</span>
+      </div>
+    </div>
+    <div class="explain">
+      <div class="explain-icon">💡</div>
+      <strong>What is it?</strong> Named after Julius Caesar who used it to protect military messages! Every letter gets <strong>shifted 3 positions forward</strong> in the alphabet.<br><br>
+      Example: <strong>HELLO → KHOOR</strong> &nbsp;|&nbsp; <strong>A→D, B→E, Z→C</strong>
+      <div class="formula-box">
+        <span class="formula">Encrypt: C = (P + 3) mod 26</span>
+        <span class="formula">Decrypt: P = (C − 3 + 26) mod 26</span>
+      </div>
+    </div>
+    <hr class="divider">
+    <label class="input-label">✏️ Your Message</label>
+    <input type="text" id="caesarInput" placeholder="Type something here...">
+    <div class="btn-row">
+      <button class="btn-enc" onclick="caesarEncrypt()">🔒 Encrypt</button>
+      <button class="btn-dec" onclick="caesarDecrypt()">🔓 Decrypt</button>
+    </div>
+    <span class="result-label">// Result 👇</span>
+    <div class="result empty" id="caesarResult"><span class="result-text">Waiting for your message...</span></div>
+    <!-- Animation Stage -->
+    <div class="anim-stage" id="caesarStage">
+      <div class="anim-title">🎬 Step-by-Step Animation</div>
+      <div class="letter-row" id="caesarLetters"></div>
+      <div class="steps-section">
+        <div class="steps-title">📊 Calculation Steps</div>
+        <div style="overflow-x:auto">
+          <table class="steps-table">
+            <thead><tr><th>Letter</th><th>Position (P)</th><th>Calculation</th><th>New Position</th><th>Result</th></tr></thead>
+            <tbody id="caesarSteps"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== GENERAL SHIFT ===== -->
+  <div class="card c2">
+    <div class="card-num">02</div>
+    <div class="card-head">
+      <div class="card-emoji">🔄</div>
+      <div class="card-title-wrap">
+        <h2>General Shift Cipher</h2>
+        <span class="card-badge">Variable ROT-k</span>
+      </div>
+    </div>
+    <div class="explain">
+      <div class="explain-icon">💡</div>
+      <strong>What is it?</strong> Same idea as Caesar, but <strong>you choose the shift amount!</strong> k=13 becomes the famous <strong>ROT-13</strong>. Still breakable by trying all 25 possible keys!<br><br>
+      Example (k=7): <strong>A→H, B→I, Z→G</strong>
+      <div class="formula-box">
+        <span class="formula">Encrypt: C = (P + k) mod 26</span>
+        <span class="formula">Decrypt: P = (C − k + 26) mod 26</span>
+      </div>
+    </div>
+    <hr class="divider">
+    <div class="inputs-row">
+      <div>
+        <label class="input-label">✏️ Your Message</label>
+        <input type="text" id="shiftInput" placeholder="Enter text...">
+      </div>
+      <div>
+        <label class="input-label">🔢 Shift Key (k)</label>
+        <input type="number" id="shiftKey" placeholder="e.g. 7" min="1" max="25">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-enc" onclick="shiftEncrypt()">🔒 Encrypt</button>
+      <button class="btn-dec" onclick="shiftDecrypt()">🔓 Decrypt</button>
+    </div>
+    <span class="result-label">// Result 👇</span>
+    <div class="result empty" id="shiftResult"><span class="result-text">Waiting for your message...</span></div>
+    <div class="anim-stage" id="shiftStage">
+      <div class="anim-title">🎬 Step-by-Step Animation</div>
+      <div class="letter-row" id="shiftLetters"></div>
+      <div class="steps-section">
+        <div class="steps-title">📊 Calculation Steps</div>
+        <div style="overflow-x:auto">
+          <table class="steps-table">
+            <thead><tr><th>Letter</th><th>Position (P)</th><th>Calculation</th><th>New Position</th><th>Result</th></tr></thead>
+            <tbody id="shiftSteps"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== AFFINE ===== -->
+  <div class="card c3">
+    <div class="card-num">03</div>
+    <div class="card-head">
+      <div class="card-emoji">📐</div>
+      <div class="card-title-wrap">
+        <h2>Affine Cipher</h2>
+        <span class="card-badge">Algebraic Magic</span>
+      </div>
+    </div>
+    <div class="explain">
+      <div class="explain-icon">💡</div>
+      <strong>What is it?</strong> The Affine Cipher adds <strong>multiplication</strong> to the mix! It multiplies by key <strong>a</strong>, then adds key <strong>b</strong>.<br><br>
+      ⚠️ Key rule: <em>a</em> must be coprime with 26 — valid: 1,3,5,7,9,11,15,17,19,21,23,25<br>
+      Example (a=5, b=8): <strong>A(0)→I(8), B(1)→N(13)</strong>
+      <div class="formula-box">
+        <span class="formula">Encrypt: C = (a·P + b) mod 26</span>
+        <span class="formula">Decrypt: P = a⁻¹·(C − b) mod 26</span>
+      </div>
+    </div>
+    <hr class="divider">
+    <label class="input-label">✏️ Your Message</label>
+    <input type="text" id="affineInput" placeholder="Enter text...">
+    <div class="inputs-row" style="margin-top:10px">
+      <div><label class="input-label">🔑 Key A</label><input type="number" id="keyA" placeholder="e.g. 5"></div>
+      <div><label class="input-label">🔑 Key B</label><input type="number" id="keyB" placeholder="e.g. 8"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-enc" onclick="affineEncrypt()">🔒 Encrypt</button>
+      <button class="btn-dec" onclick="affineDecrypt()">🔓 Decrypt</button>
+    </div>
+    <span class="result-label">// Result 👇</span>
+    <div class="result empty" id="affineResult"><span class="result-text">Waiting for your message...</span></div>
+    <div class="anim-stage" id="affineStage">
+      <div class="anim-title">🎬 Step-by-Step Animation</div>
+      <div class="letter-row" id="affineLetters"></div>
+      <div class="steps-section">
+        <div class="steps-title">📊 Calculation Steps</div>
+        <div style="overflow-x:auto">
+          <table class="steps-table">
+            <thead><tr><th>Letter</th><th>Position (P)</th><th>Calculation</th><th>New Position</th><th>Result</th></tr></thead>
+            <tbody id="affineSteps"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== RSA ===== -->
+  <div class="card c4">
+    <div class="card-num">04</div>
+    <div class="card-head">
+      <div class="card-emoji">🔑</div>
+      <div class="card-title-wrap">
+        <h2>RSA Cipher</h2>
+        <span class="card-badge">Asymmetric Power</span>
+      </div>
+    </div>
+    <div class="explain">
+      <div class="explain-icon">💡</div>
+      <strong>What is it?</strong> RSA is the <strong>superhero of encryption</strong> — it protects your passwords and online banking! Uses <strong>two different keys</strong>: public (share with everyone!) and private (keep secret 🤫). Security relies on the near-impossibility of <strong>factoring giant numbers</strong>.<br><br>
+      How: Pick two primes p and q → n=p×q → use e=3, find secret d → encrypt with e, decrypt with d.<br>
+      ⚠️ <strong>Simplified demo!</strong> Real RSA uses primes with hundreds of digits.
+      <div class="formula-box">
+        <span class="formula">Encrypt: C = Mᵉ mod n</span>
+        <span class="formula">Decrypt: M = Cᵈ mod n</span>
+      </div>
+    </div>
+    <hr class="divider">
+    <div class="inputs-row">
+      <div><label class="input-label">🧮 Prime p</label><input type="number" id="p" placeholder="e.g. 11"></div>
+      <div><label class="input-label">🧮 Prime q</label><input type="number" id="q" placeholder="e.g. 13"></div>
+    </div>
+    <div class="btn-row"><button class="btn-gen" onclick="generateRSA()">⚙️ Generate Keys</button></div>
+    <div id="rsaKeys">Enter two prime numbers above, then hit Generate Keys! 🔑</div>
+    <hr class="divider">
+    <label class="input-label">🔢 Numeric Message (must be &lt; n)</label>
+    <input type="number" id="rsaMessage" placeholder="Enter a number">
+    <div class="btn-row">
+      <button class="btn-enc" onclick="rsaEncrypt()">🔒 Encrypt</button>
+      <button class="btn-dec" onclick="rsaDecrypt()">🔓 Decrypt</button>
+    </div>
+    <span class="result-label">// Result 👇</span>
+    <div class="result empty" id="rsaResult"><span class="result-text">Waiting for your message...</span></div>
+    <div class="anim-stage" id="rsaStage">
+      <div class="anim-title">🎬 Step-by-Step Calculation</div>
+      <div id="rsaStepsContent" style="color:#94a3b8;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;line-height:1.9;"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <div class="footer-inner">👻 CryptoLab &nbsp;·&nbsp; RUPP &nbsp;·&nbsp; 2026 &nbsp; ☕</div>
+</div>
+
+<script>
+// ===== HELPERS =====
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function copyResult(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('📋 Copied to clipboard!'));
+}
+
+function setResult(id, text, empty) {
+  const el = document.getElementById(id);
+  el.className = 'result' + (empty ? ' empty' : '');
+  if (empty) {
+    el.innerHTML = `<span class="result-text">${text}</span>`;
+  } else {
+    el.innerHTML = `<span class="result-text">${text}</span><button class="btn-copy" onclick="copyResult('${text.replace(/'/g,"\\'")}')">📋 Copy</button>`;
+  }
+}
+
+// Animate letters with delay
+function animateLetters(containerId, pairs) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  pairs.forEach((p, i) => {
+    const box = document.createElement('div');
+    box.className = 'letter-box';
+    box.style.animationDelay = (i * 80) + 'ms';
+    if (p.skip) {
+      box.innerHTML = `<div class="l-orig">${p.orig}</div><div class="l-arrow">↓</div><div class="l-skip">skip</div>`;
+    } else {
+      box.innerHTML = `<div class="l-orig">${p.orig}</div><div class="l-arrow">↓</div><div class="l-result">${p.result}</div>`;
+    }
+    container.appendChild(box);
+  });
+}
+
+// Build steps table rows
+function buildSteps(tbodyId, rows) {
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML = '';
+  rows.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    tr.style.animationDelay = (i * 60) + 'ms';
+    tr.innerHTML = `<td class="td-letter">${r.letter}</td><td class="td-num">${r.pos}</td><td style="color:#a78bfa;font-weight:800">${r.calc}</td><td class="td-num">${r.newPos}</td><td class="td-result">${r.result}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function showStage(id) {
+  document.getElementById(id).classList.add('visible');
+}
+
+function modInverse(a, m) {
+  for (let x = 1; x < m; x++) if ((a * x) % m === 1) return x;
+  return 1;
+}
+
+// ===== CAESAR =====
+function caesarRun(mode) {
+  const text = document.getElementById("caesarInput").value.toUpperCase();
+  if (!text.trim()) { setResult("caesarResult","Type something first! 👆",true); return; }
+  const shift = mode === 'enc' ? 3 : -3;
+  let result = '', pairs = [], rows = [];
+
+  for (let c of text) {
+    if (c >= 'A' && c <= 'Z') {
+      const p = c.charCodeAt(0) - 65;
+      const np = ((p + shift) % 26 + 26) % 26;
+      const r = String.fromCharCode(np + 65);
+      result += r;
+      pairs.push({ orig: c, result: r });
+      const calcStr = mode === 'enc'
+        ? `(${p} + 3) mod 26 = ${np}`
+        : `(${p} − 3 + 26) mod 26 = ${np}`;
+      rows.push({ letter: c, pos: p, calc: calcStr, newPos: np, result: r });
+    } else {
+      result += c;
+      pairs.push({ orig: c === ' ' ? '␣' : c, skip: true });
+    }
+  }
+
+  setResult("caesarResult", result);
+  animateLetters("caesarLetters", pairs);
+  buildSteps("caesarSteps", rows);
+  showStage("caesarStage");
+}
+function caesarEncrypt() { caesarRun('enc'); }
+function caesarDecrypt() { caesarRun('dec'); }
+
+// ===== GENERAL SHIFT =====
+function shiftRun(mode) {
+  const text = document.getElementById("shiftInput").value.toUpperCase();
+  const k = parseInt(document.getElementById("shiftKey").value);
+  if (isNaN(k)) { setResult("shiftResult","⚠ Enter a shift key first!",true); return; }
+  const shift = mode === 'enc' ? k : -k;
+  let result = '', pairs = [], rows = [];
+
+  for (let c of text) {
+    if (c >= 'A' && c <= 'Z') {
+      const p = c.charCodeAt(0) - 65;
+      const np = ((p + shift) % 26 + 26) % 26;
+      const r = String.fromCharCode(np + 65);
+      result += r;
+      pairs.push({ orig: c, result: r });
+      const calcStr = mode === 'enc'
+        ? `(${p} + ${k}) mod 26 = ${np}`
+        : `(${p} − ${k} + 26) mod 26 = ${np}`;
+      rows.push({ letter: c, pos: p, calc: calcStr, newPos: np, result: r });
+    } else {
+      result += c;
+      pairs.push({ orig: c === ' ' ? '␣' : c, skip: true });
+    }
+  }
+
+  setResult("shiftResult", result);
+  animateLetters("shiftLetters", pairs);
+  buildSteps("shiftSteps", rows);
+  showStage("shiftStage");
+}
+function shiftEncrypt() { shiftRun('enc'); }
+function shiftDecrypt() { shiftRun('dec'); }
+
+// ===== AFFINE =====
+function affineRun(mode) {
+  const text = document.getElementById("affineInput").value.toUpperCase();
+  const a = parseInt(document.getElementById("keyA").value);
+  const b = parseInt(document.getElementById("keyB").value);
+  if (isNaN(a) || isNaN(b)) { setResult("affineResult","⚠ Enter both keys first!",true); return; }
+  const a_inv = modInverse(a, 26);
+  let result = '', pairs = [], rows = [];
+
+  for (let c of text) {
+    if (c >= 'A' && c <= 'Z') {
+      const p = c.charCodeAt(0) - 65;
+      let np, calcStr;
+      if (mode === 'enc') {
+        np = ((a * p + b) % 26 + 26) % 26;
+        calcStr = `(${a}×${p} + ${b}) mod 26 = ${np}`;
+      } else {
+        np = ((a_inv * (p - b)) % 26 + 26) % 26;
+        calcStr = `${a_inv}×(${p}−${b}) mod 26 = ${np}`;
+      }
+      const r = String.fromCharCode(np + 65);
+      result += r;
+      pairs.push({ orig: c, result: r });
+      rows.push({ letter: c, pos: p, calc: calcStr, newPos: np, result: r });
+    } else {
+      result += c;
+      pairs.push({ orig: c === ' ' ? '␣' : c, skip: true });
+    }
+  }
+
+  setResult("affineResult", result);
+  animateLetters("affineLetters", pairs);
+  buildSteps("affineSteps", rows);
+  showStage("affineStage");
+}
+function affineEncrypt() { affineRun('enc'); }
+function affineDecrypt() { affineRun('dec'); }
+
+// ===== RSA =====
+let rsaN, rsaE = 3, rsaD;
+
+function generateRSA() {
+  const p = parseInt(document.getElementById("p").value);
+  const q = parseInt(document.getElementById("q").value);
+  if (isNaN(p) || isNaN(q)) { document.getElementById("rsaKeys").textContent = "⚠ Enter both prime numbers!"; return; }
+  rsaN = p * q;
+  const phi = (p - 1) * (q - 1);
+  rsaD = modInverse(rsaE, phi);
+  document.getElementById("rsaKeys").innerHTML =
+    `🟢 <b>Public Key</b> (e, n) = (${rsaE}, ${rsaN}) &nbsp;&nbsp; 🔴 <b>Private Key</b> (d, n) = (${rsaD}, ${rsaN})<br>` +
+    `<span style="font-size:12px;color:#555">φ(n) = (${p}−1)×(${q}−1) = ${phi} &nbsp;|&nbsp; n = ${p}×${q} = ${rsaN}</span>`;
+}
+
+function rsaRun(mode) {
+  if (!rsaN) { setResult("rsaResult","⚠ Generate keys first!",true); return; }
+  const input = parseInt(document.getElementById("rsaMessage").value);
+  let output, steps;
+
+  if (mode === 'enc') {
+    output = Math.pow(input, rsaE) % rsaN;
+    steps = `
+      <span style="color:var(--teal)">📥 Input Message M = ${input}</span><br>
+      <span style="color:#94a3b8">Using Public Key: e = ${rsaE}, n = ${rsaN}</span><br><br>
+      <span style="color:#a78bfa">Step 1:</span> Calculate M<sup>e</sup> = ${input}<sup>${rsaE}</sup> = ${Math.pow(input, rsaE)}<br>
+      <span style="color:#a78bfa">Step 2:</span> Apply mod n → ${Math.pow(input, rsaE)} mod ${rsaN} = <span style="color:var(--yellow);font-size:16px">${output}</span><br><br>
+      <span style="color:var(--green)">✅ Ciphertext C = ${output}</span>
+    `;
+    setResult("rsaResult", `🔒 Cipher C = ${output}`);
+  } else {
+    output = Math.pow(input, rsaD) % rsaN;
+    steps = `
+      <span style="color:var(--orange)">📥 Input Ciphertext C = ${input}</span><br>
+      <span style="color:#94a3b8">Using Private Key: d = ${rsaD}, n = ${rsaN}</span><br><br>
+      <span style="color:#a78bfa">Step 1:</span> Calculate C<sup>d</sup> = ${input}<sup>${rsaD}</sup> = ${Math.pow(input, rsaD)}<br>
+      <span style="color:#a78bfa">Step 2:</span> Apply mod n → ${Math.pow(input, rsaD)} mod ${rsaN} = <span style="color:var(--yellow);font-size:16px">${output}</span><br><br>
+      <span style="color:var(--green)">✅ Plaintext M = ${output}</span>
+    `;
+    setResult("rsaResult", `🔓 Message M = ${output}`);
+  }
+
+  document.getElementById("rsaStepsContent").innerHTML = steps;
+  showStage("rsaStage");
+}
+function rsaEncrypt() { rsaRun('enc'); }
+function rsaDecrypt() { rsaRun('dec'); }
+</script>
+</body>
+</html>
